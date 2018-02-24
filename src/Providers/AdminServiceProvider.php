@@ -3,8 +3,11 @@
 namespace Encore\Admin\Providers;
 
 use Encore\Admin\Facades\Admin;
+use Illuminate\Filesystem\Filesystem;
+use Illuminate\Filesystem\FilesystemManager;
 use Illuminate\Foundation\AliasLoader;
 use Illuminate\Support\ServiceProvider;
+use Laravel\Lumen\Application as LumenApplication;
 
 class AdminServiceProvider extends ServiceProvider
 {
@@ -52,8 +55,14 @@ class AdminServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->app->configure("admin");
+        if ($this->app instanceof LumenApplication) {
+            $this->app->configure("filesystems");
+            app()->bind('filesystem', function(){
+                return new FilesystemManager($this->app);
+            });
+            $this->app->configure("admin");
 
+        }
         $this->loadViewsFrom(__DIR__.'/../../views', 'admin');
         $this->loadTranslationsFrom(__DIR__.'/../../lang/', 'admin');
 //        $this->app->configure('hashids');
@@ -87,6 +96,7 @@ class AdminServiceProvider extends ServiceProvider
 //        if (is_null(config('auth.guards.admin'))) {
             $this->setupAuth();
 //        }
+
         app()->singleton('LaravelUrl', \Illuminate\Routing\UrlGenerator::class);
 
         $this->registerRouteMiddleware();

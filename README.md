@@ -58,6 +58,8 @@ The file in `config/admin.php` contains an array of settings, you can find the d
 Documentation
 ------------
 
+
+
 - [quick start](/docs/en/quick-start.md)
 - [router](/docs/en/router.md)
 - [menu](/docs/en/menu.md)
@@ -159,3 +161,71 @@ License
 ------------
 `laravel-admin` is licensed under [The MIT License (MIT)](LICENSE).
 # lumen-laravel-admin
+#拷贝配置文件 
+1. laravel config 下 filesystems.php 到 config 下
+2. 注册middleware
+```php
+$app->routeMiddleware(
+    [
+        'admin.auth' => \Encore\Admin\Middleware\Authenticate::class,
+        'admin.pjax' => \Encore\Admin\Middleware\PjaxMiddleware::class,
+        'admin.log' => \Encore\Admin\Middleware\OperationLog::class,
+        'admin.permission' => \Encore\Admin\Middleware\PermissionMiddleware::class,
+        'admin.bootstrap' => \Encore\Admin\Middleware\BootstrapMiddleware::class,
+    ]
+);
+
+``` 
+2. 开启cookie支持
+```php
+$app->register(\Illuminate\Cookie\CookieServiceProvider::class);
+
+$app->singleton(\Illuminate\Contracts\Cookie\Factory::class, function ($app) {
+    return $app['cookie'];
+});
+```    
+3. 开启seesion
+```php
+
+ #session开启
+ 在app 下service Provider中添加 如下 
+ $this->app->configure('session');
+ $this->app->instance(SessionManager::class, $this->app['session']);
+ 在bootstrap 中添加middleware 和 provider 
+ 
+ ```php
+ $app->middleware([
+     \Illuminate\Session\Middleware\StartSession::class
+ ]);
+ 
+ $app->register(\Illuminate\Session\SessionServiceProvider::class);
+ 
+ ```
+ cache配置文件新增 store
+ ```php
+  'share-session' =>[
+             'driver' => 'memcached',
+             'servers' => [
+                 [
+                     'host' => env('MEMCACHED_SESSION_HOST_1', '127.0.0.1'),
+                     'port' => env('MEMCACHED_SESSION_PORT_1', 11211),
+                     'weight' => 100,
+                 ],
+                 [
+                     'host' => env('MEMCACHED_SESSION_HOST_2', '127.0.0.1'),
+                     'port' => env('MEMCACHED_SESSION_PORT_2', 11211),
+                     'weight' => 100,
+                 ],
+                 [
+                     'host' => env('MEMCACHED_SESSION_HOST_3', '127.0.0.1'),
+                     'port' => env('MEMCACHED_SESSION_PORT_3', 11211),
+                     'weight' => 100,
+                 ],
+             ],
+             /**
+              * 暂时不区分环境，直接写死了
+              */
+             'prefix' => 'd1_production-wx_v_1.0_session'
+         ],
+```
+session配置文件设置 store = share-session
