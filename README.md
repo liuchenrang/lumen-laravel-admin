@@ -225,7 +225,7 @@ $app->singleton(\Illuminate\Contracts\Cookie\Factory::class, function ($app) {
              /**
               * 暂时不区分环境，直接写死了
               */
-             'prefix' => 'd1_production-wx_v_1.0_session'
+             'prefix' => '1.0_session'
          ],
 ```
 session配置文件设置 store = share-session
